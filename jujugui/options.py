@@ -7,7 +7,7 @@ from pyramid.settings import asbool
 
 
 # Define default values for options.
-DEFAULT_CHARMSTORE_URL = 'https://api.jujucharms.com/charmstore/'
+DEFAULT_CHARMSTORE_URL = 'http://api.jujugui.org/charmstore/'
 
 
 def update(settings):
