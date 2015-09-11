@@ -1,7 +1,7 @@
 /*
 This file is part of the Juju GUI, which lets users view and manage Juju
 environments within a graphical interface (https://launchpad.net/juju-gui).
-Copyright (C) 2012-2013 Canonical Ltd.
+Copyright (C) 2012-2015 Canonical Ltd.
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU Affero General Public License version 3, as published by
@@ -74,9 +74,10 @@ YUI.add('juju-env-bakery', function(Y) {
 
     /**
       Handles the request response from the _makeRequest method, calling the
-      supplied failure callback if the response status was >= 400 or passing the
-      response object to the supplied success callback. For 407/401 response it will
-      request authentication through the macaroon provided in the 401/407 response.
+      supplied failure callback if the response status was >= 400 or passing
+      the response object to the supplied success callback. For 407/401
+      response it will request authentication through the macaroon provided in
+      the 401/407 response.
 
       @method _requestHandlerWithInteraction
       @param {String} The path to make the api request to.
@@ -95,7 +96,8 @@ YUI.add('juju-env-bakery', function(Y) {
         this._authenticate(
           jsonResponse.Info.Macaroon,
           setCookiePath,
-          this.sendGetRequest.bind(this, path, null, successCallback, failureCallback),
+          this.sendGetRequest.bind(this, path, null, successCallback,
+                                   failureCallback),
           failureCallback
         );
       } else {
@@ -131,7 +133,8 @@ YUI.add('juju-env-bakery', function(Y) {
       @method authenticate
       @param {Macaroon} The macaroon to be discharged
       @param {String} The path where to send put request to set the cookie back
-      @param {Function} The request to be sent again in case of successful authentication
+      @param {Function} The request to be sent again in case of successful
+        authentication
       @param {Function} The callback failure in case of wrong authentication
     */
     _authenticate: function(m, authCookiePath, requestFunction, failureCallback) {
@@ -139,7 +142,8 @@ YUI.add('juju-env-bakery', function(Y) {
         macaroon.discharge(
           macaroon.import(m),
           this._obtainThirdPartyDischarge.bind(this),
-          this._processDischarges.bind(this, authCookiePath, requestFunction, failureCallback),
+          this._processDischarges.bind(this, authCookiePath, requestFunction,
+                                       failureCallback),
           failureCallback
         );
       } catch (ex) {
@@ -153,11 +157,13 @@ YUI.add('juju-env-bakery', function(Y) {
 
       @method _processDischarges
       @param {String} The path where to send put request to set the cookie back
-      @param {Function} The request to be sent again in case of successful authentication
+      @param {Function} The request to be sent again in case of successful
+        authentication
       @param {Function} The callback failure in case of wrong authentication
       @param {[Macaroon]} The macaroons being discharged
     */
-    _processDischarges: function(authCookiePath, requestFunction, failureCallback, discharges) {
+    _processDischarges: function(authCookiePath, requestFunction,
+    failureCallback, discharges) {
       var jsonMacaroon = macaroon.export(discharges);
       var content = JSON.stringify({'Macaroons': jsonMacaroon});
       this.webhandler.sendPutRequest(
@@ -181,14 +187,16 @@ YUI.add('juju-env-bakery', function(Y) {
       @param {String} The origin location
       @param {String} The third party location where to discharge
       @param {Function} The macaroon to be discharge
-      @param {Function} The request to be sent again in case of successful authentication
+      @param {Function} The request to be sent again in case of successful
+        authentication
       @param {Function} The callback failure in case of wrong authentication
     */
     _obtainThirdPartyDischarge: function(location, thirdPartyLocation, condition,
                                          successCallback, failureCallback) {
       thirdPartyLocation += '/discharge';
       var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
-      var content = 'id=' + encodeURI(condition) + '&location=' + encodeURI(location);
+      var content = 'id=' + encodeURI(condition) + '&location=' +
+        encodeURI(location);
       this.webhandler.sendPostRequest(
           thirdPartyLocation,
           headers, content, null, null, null, false,
@@ -196,7 +204,8 @@ YUI.add('juju-env-bakery', function(Y) {
             this,
             function(e) {
               try {
-                var dm = macaroon.import(JSON.parse(e.target.responseText).Macaroon);
+                var dm = macaroon.import(JSON.parse(
+                  e.target.responseText).Macaroon);
                 successCallback(dm);
               } catch (ex) {
                 failureCallback(ex.message);
@@ -211,8 +220,10 @@ YUI.add('juju-env-bakery', function(Y) {
       Interact to be able to sign-in to get authenticated.
 
       @method _interact
-      @param {Function} The callback function to be sent in case of successful authentication
-      @param {Function} The callback function failure in case of wrong authentication
+      @param {Function} The callback function to be sent in case of successful
+        authentication
+      @param {Function} The callback function failure in case of
+        wrong authentication
     */
     _interact: function(successCallback, failureCallback, e) {
       var response = JSON.parse(e.target.responseText);
@@ -233,7 +244,8 @@ YUI.add('juju-env-bakery', function(Y) {
           this._requestHandler.bind(
             this,
             function(e) {
-              var dm = macaroon.import(JSON.parse(e.target.responseText).Macaroon);
+              var dm = macaroon.import(JSON.parse(
+                e.target.responseText).Macaroon);
               successCallback(dm);
             },
             function(e) {
