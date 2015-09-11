@@ -56,14 +56,15 @@ YUI.add('juju-env-bakery', function(Y) {
       @param {Function} successCallback Called when the api request completes
         successfully.
       @param {Function} failureCallback Called when the api request fails
-        with a response of >= 400 except 407 where it does authentication.
+        with a response of >= 400 except 401/407 where it does authentication.
     */
     sendGetRequest: function(path, setCookiePath, successCallback, failureCallback) {
       var macaroon = Y.Cookie.get('Macaroons');
-      var headers = null;
+      var headers = {'Bakery-Protocol-Version': 1};
       if (macaroon !== null) {
-        headers = {'Macaroons': macaroon}
+        headers['Macaroons'] = macaroon;
       }
+
       this.webhandler.sendGetRequest(
           path, headers, null, null, null, false,
           this._requestHandlerWithInteraction.bind(this, path, setCookiePath,
@@ -74,8 +75,8 @@ YUI.add('juju-env-bakery', function(Y) {
     /**
       Handles the request response from the _makeRequest method, calling the
       supplied failure callback if the response status was >= 400 or passing the
-      response object to the supplied success callback. For 407 response it will
-      request authentication through the macaroon provided in the 407 response.
+      response object to the supplied success callback. For 407/401 response it will
+      request authentication through the macaroon provided in the 401/407 response.
 
       @method _requestHandlerWithInteraction
       @param {String} The path to make the api request to.
@@ -83,12 +84,13 @@ YUI.add('juju-env-bakery', function(Y) {
       @param {Function} successCallback Called when the api request completes
         successfully.
       @param {Function} failureCallback Called when the api request fails
-        with a response of >= 400 (except 407).
+        with a response of >= 400 (except 401/407).
       @param {Object} response The XHR response object.
     */
     _requestHandlerWithInteraction: function(path, setCookiePath, successCallback, failureCallback, response) {
       var target = response.target;
-      if (target.status === 407) {
+      if (target.status === 407 ||
+          (target.status === 401 && target.getresponseHeader('WWW-Authenticate') === 'Macaroon')) {
         var jsonResponse = JSON.parse(target.responseText);
         this._authenticate(
           jsonResponse.Info.Macaroon,
@@ -165,7 +167,7 @@ YUI.add('juju-env-bakery', function(Y) {
           this,
           function() {
             Y.Cookie.set('Macaroons', btoa(JSON.stringify(jsonMacaroon)));
-            requestFunction.apply()
+            requestFunction.apply();
           },
           failureCallback
         )
@@ -216,7 +218,7 @@ YUI.add('juju-env-bakery', function(Y) {
       var response = JSON.parse(e.target.responseText);
       if (response.Code !== 'interaction required') {
         failureCallback(response.Code);
-        return
+        return;
       }
 
       // Let's open a pop up
@@ -232,10 +234,10 @@ YUI.add('juju-env-bakery', function(Y) {
             this,
             function(e) {
               var dm = macaroon.import(JSON.parse(e.target.responseText).Macaroon);
-              successCallback(dm)
+              successCallback(dm);
             },
             function(e) {
-              failureCallback(e.target.responseText)
+              failureCallback(e.target.responseText);
             }
           )
       );

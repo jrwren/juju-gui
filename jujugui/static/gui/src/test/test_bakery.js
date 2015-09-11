@@ -86,7 +86,7 @@ describe('Bakery', function() {
         h({'target' : {
           status: 200
         }});
-      }
+      };
       this._cleanups.push(getRequest.reset);
       var m = macaroon.export(
         macaroon.newMacaroon(['secret'], 'some id', 'a location')
